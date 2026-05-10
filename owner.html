@@ -6,6 +6,45 @@
 <title>HR Academy — Owner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- ✅ Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── Supabase Setup ──
+const SUPABASE_URL  = 'https://ozzitzzhtldhaarlvmdl.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96eml0enpodGxkaGFhcmx2bWRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMjg1NzUsImV4cCI6MjA5MzgwNDU3NX0.71MNqxv0drpE_yrxGP9ZlzQ9zBcG2PW-Y_KuP9juyWA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── Session Check — Agar login nahi hai to index.html pe bhejo ──
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = 'index.html';
+    return;
+  }
+  // Role check — sirf owner ko allow karo
+  const { data: profile } = await sb
+    .from('profiles')
+    .select('role_type, name, is_active')
+    .eq('id', session.user.id)
+    .single();
+
+  if (!profile || profile.role_type !== 'owner' || !profile.is_active) {
+    await sb.auth.signOut();
+    window.location.href = 'index.html';
+  }
+})();
+
+// ── Logout Function ──
+async function doLogout() {
+  try {
+    await sb.auth.signOut();
+  } catch(e) {
+    console.error(e);
+  }
+  window.location.href = 'index.html';
+}
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -1061,7 +1100,7 @@ body{font-family:'Noto Sans',sans-serif;background:var(--bg);min-height:100vh;pa
           </div>
         </div>
       </div>
-      <div class="card" style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="showToast('Logout ho gaye!')">
+      <div class="card" style="padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="doLogout()">
         <div style="width:32px;height:32px;border-radius:9px;background:var(--red-light);display:flex;align-items:center;justify-content:center;font-size:15px">🚪</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--red)">Logout</div><div style="font-size:11px;color:var(--text-3)">Rajesh Kumar · Owner</div></div>
         <div style="font-size:13px;color:var(--red)">→</div>
