@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HR Academy — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- ✅ Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --primary:       #1a56db;
+  --primary-dark:  #1140a6;
+  --primary-light: #e8f0fe;
+  --green:         #0e9f6e;
+  --green-light:   #def7ec;
+  --red:           #e02424;
+  --red-light:     #fde8e8;
+  --amber:         #c27803;
+  --amber-light:   #fdf6b2;
+  --text:          #111827;
+  --text-2:        #4b5563;
+  --text-3:        #9ca3af;
+  --bg:            #f0f4fb;
+  --card:          #ffffff;
+  --border:        #e5e7eb;
+  --shadow:        0 2px 8px rgba(0,0,0,0.07), 0 8px 24px rgba(0,0,0,0.05);
+  --radius:        18px;
+  --radius-sm:     12px;
+}
+
+body {
+  font-family: 'Noto Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 16px 32px;
+}
+
+.app {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ── Language Toggle ── */
+.lang-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: 'Noto Sans', sans-serif;
+  transition: all 0.18s;
+}
+.lang-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.lang-icon { font-size: 15px; }
+
+/* ── Header Card ── */
+.header-card {
+  background: linear-gradient(135deg, #1a56db 0%, #1e40af 100%);
+  border-radius: var(--radius);
+  padding: 26px 24px 22px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.header-card::before {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 180px; height: 180px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.header-card::after {
+  content: '';
+  position: absolute;
+  bottom: -70px; left: -30px;
+  width: 220px; height: 220px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+.logo-box {
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.2);
+}
+.logo-name {
+  font-family: 'Baloo 2', cursive;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.15;
+  letter-spacing: 0.3px;
+}
+.logo-slogan {
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.72);
+  font-weight: 500;
+  font-style: italic;
+  margin-top: 1px;
+}
+.header-title {
+  font-family: 'Baloo 2', cursive;
+  font-size: 25px;
+  font-weight: 800;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  line-height: 1.2;
+}
+.header-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.72);
+  margin-top: 5px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Login Card ── */
+.login-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 22px 20px 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+
+/* ── Fields ── */
+.field { margin-bottom: 14px; }
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 7px;
+}
+.input-wrap { position: relative; }
+.input-prefix {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  pointer-events: none;
+}
+.input-prefix svg { width: 18px; height: 18px; }
+
+input {
+  width: 100%;
+  padding: 14px 14px 14px 46px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-family: 'Noto Sans', sans-serif;
+  color: var(--text);
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  -webkit-appearance: none;
+}
+input:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+}
+input.err { border-color: var(--red) !important; box-shadow: 0 0 0 3px rgba(224,36,36,0.08) !important; }
+input::placeholder { color: var(--text-3); }
+
+.eye-btn {
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  cursor: pointer; color: var(--text-3);
+  display: flex; padding: 6px;
+}
+.eye-btn svg { width: 18px; height: 18px; }
+
+/* ── Error Box ── */
+.error-box {
+  display: none;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--red-light);
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--red);
+  font-weight: 500;
+  line-height: 1.5;
+}
+.error-box.show { display: flex; }
+.error-box svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+
+/* ── Login Button ── */
+.login-btn {
+  width: 100%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 15px;
+  font-size: 16px;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.3px;
+  transition: background 0.18s, transform 0.1s;
+  position: relative;
+  overflow: hidden;
+}
+.login-btn:hover:not(:disabled) { background: var(--primary-dark); }
+.login-btn:active:not(:disabled) { transform: scale(0.985); }
+.login-btn:disabled { opacity: 0.72; cursor: not-allowed; }
+
+.spin-ring {
+  width: 20px; height: 20px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  display: none;
+  flex-shrink: 0;
+}
+.loading .spin-ring { display: block; }
+.loading .btn-label { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Success Screen ── */
+#successCard {
+  display: none;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  margin-bottom: 14px;
+}
+.s-icon {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--green-light);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 34px;
+}
+.s-title {
+  font-family: 'Baloo 2', cursive;
+  font-size: 22px; font-weight: 800;
+  color: var(--text); margin-bottom: 5px;
+}
+.s-sub { font-size: 15px; color: var(--text-2); margin-bottom: 16px; }
+.s-badge {
+  display: inline-flex;
+  align-items: center; gap: 6px;
+  padding: 8px 20px;
+  border-radius: 24px;
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 22px;
+}
+.goto-btn {
+  width: 100%; border: none;
+  border-radius: var(--radius-sm);
+  padding: 15px;
+  font-size: 16px;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 700;
+  cursor: pointer; color: #fff;
+  transition: opacity 0.18s;
+}
+.goto-btn:hover { opacity: 0.88; }
+
+/* ── Info Box (owner credentials hint) ── */
+.info-box {
+  background: var(--primary-light);
+  border: 1.5px solid #bfdbfe;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--primary-dark);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+.info-box strong { font-weight: 700; }
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.6;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lang-bar    { animation: fadeUp 0.35s ease 0.05s both; }
+.header-card { animation: fadeUp 0.35s ease 0.10s both; }
+.login-card  { animation: fadeUp 0.35s ease 0.17s both; }
+.info-box    { animation: fadeUp 0.35s ease 0.22s both; }
+.footer      { animation: fadeUp 0.35s ease 0.27s both; }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- Language Toggle -->
+  <div class="lang-bar">
+    <button class="lang-btn" onclick="toggleLang()">
+      <span class="lang-icon">🌐</span>
+      <span id="langBtnTxt">हिंदी में देखें</span>
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="header-card">
+    <div class="logo-row">
+      <div class="logo-box">🏫</div>
+      <div>
+        <div class="logo-name">H R Academy</div>
+        <div class="logo-slogan" id="logoSlogan">(Making you independent)</div>
+      </div>
+    </div>
+    <div class="header-title" id="hdrTitle">Welcome Back! 👋</div>
+    <div class="header-sub"   id="hdrSub">Login to your account</div>
+  </div>
+
+  <!-- Login Form -->
+  <div class="login-card" id="loginCard">
+
+    <!-- Phone -->
+    <div class="field">
+      <label class="field-label" id="lblPhone">Phone Number</label>
+      <div class="input-wrap">
+        <span class="input-prefix">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+        </span>
+        <input type="tel" id="phoneInput" placeholder="9876543210"
+          maxlength="10" inputmode="numeric"
+          oninput="this.value=this.value.replace(/\D/g,''); clearErr();">
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="field">
+      <label class="field-label" id="lblPass">Password</label>
+      <div class="input-wrap">
+        <span class="input-prefix">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <input type="password" id="passInput" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter')doLogin()"
+          oninput="clearErr()">
+        <button class="eye-btn" onclick="toggleEye()" type="button" id="eyeBtn">
+          <svg id="eyeSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Box -->
+    <div class="error-box" id="errBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="errTxt"></span>
+    </div>
+
+    <!-- Login Button -->
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">
+      <div class="spin-ring"></div>
+      <span class="btn-label" id="btnLabel">Login &nbsp;→</span>
+    </button>
+
+  </div>
+
+  <!-- Success Screen (hidden by default) -->
+  <div id="successCard">
+    <div class="s-icon">✅</div>
+    <div class="s-title" id="sTitleTxt">Login Successful!</div>
+    <div class="s-sub"   id="sSubTxt">Welcome back</div>
+    <div class="s-badge" id="sBadge"></div>
+    <button class="goto-btn" id="gotoBtn" onclick="goDashboard()">
+      <span id="gotoTxt">Go to Dashboard →</span>
+    </button>
+  </div>
+
+
+
+  <!-- Footer -->
+  <div class="footer" id="footerTxt">
+    📚 Aapki padhai, humari zimmedari
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  SUPABASE CONFIG
+// ══════════════════════════════════════════════
+const SUPABASE_URL  = 'https://ozzitzzhtldhaarlvmdl.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96eml0enpodGxkaGFhcmx2bWRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMjg1NzUsImV4cCI6MjA5MzgwNDU3NX0.71MNqxv0drpE_yrxGP9ZlzQ9zBcG2PW-Y_KuP9juyWA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ══════════════════════════════════════════════
+//  SESSION CHECK — Pehle se login hai to redirect
+// ══════════════════════════════════════════════
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    // Profile fetch karo role ke liye
+    const { data: profile } = await sb
+      .from('profiles')
+      .select('role_type, name')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profile) redirectTo(profile.role_type);
+  }
+})();
+
+// ══════════════════════════════════════════════
+//  TRANSLATIONS
+// ══════════════════════════════════════════════
+const T = {
+  en: {
+    logoSlogan: '(Making you independent)',
+    hdrTitle:   'Welcome Back! 👋',
+    hdrSub:     'Login to your account',
+    lblPhone:   'Phone Number',
+    lblPass:    'Password',
+    btnLabel:   'Login &nbsp;→',
+    langBtn:    'हिंदी में देखें',
+    sTitle:     'Login Successful! ✅',
+    sSub:       'Welcome back,',
+    gotoTxt:    'Go to Dashboard →',
+    footer:     '📚 Aapki padhai, humari zimmedari',
+    errPhone:   'Please enter a valid 10-digit mobile number.\nकृपया 10 अंकों का नंबर डालें।',
+    errPass:    'Please enter your password.\nकृपया पासवर्ड डालें।',
+    errNotReg:  'This number is not registered. Please contact HR Academy.\nयह नंबर रजिस्टर नहीं है। HR Academy से संपर्क करें।',
+    errWrong:   'Wrong password. Please try again.\nगलत पासवर्ड। दोबारा कोशिश करें।',
+    errServer:  'Server error. Please try again.\nसर्वर एरर। दोबारा कोशिश करें।',
+    roleStudent:'Student', roleTeacher:'Teacher', roleOwner:'Owner', roleBM:'Branch Manager',
+  },
+  hi: {
+    logoSlogan: '(आपको आत्मनिर्भर बनाना)',
+    hdrTitle:   'वापस आए! 👋',
+    hdrSub:     'अपने अकाउंट में लॉगिन करें',
+    lblPhone:   'मोबाइल नंबर',
+    lblPass:    'पासवर्ड',
+    btnLabel:   'लॉगिन करें &nbsp;→',
+    langBtn:    'View in English',
+    sTitle:     'लॉगिन सफल! ✅',
+    sSub:       'स्वागत है,',
+    gotoTxt:    'डैशबोर्ड पर जाएं →',
+    footer:     '📚 आपकी पढ़ाई, हमारी ज़िम्मेदारी',
+    errPhone:   'कृपया 10 अंकों का सही मोबाइल नंबर डालें।\nPlease enter a valid 10-digit number.',
+    errPass:    'कृपया पासवर्ड डालें।\nPlease enter your password.',
+    errNotReg:  'यह नंबर रजिस्टर नहीं है। HR Academy से संपर्क करें।\nThis number is not registered.',
+    errWrong:   'गलत पासवर्ड। दोबारा कोशिश करें।\nWrong password. Try again.',
+    errServer:  'सर्वर एरर। दोबारा कोशिश करें।\nServer error. Please try again.',
+    roleStudent:'स्टूडेंट', roleTeacher:'टीचर', roleOwner:'ओनर', roleBM:'ब्रांच मैनेजर',
+  }
+};
+
+let lang = 'en';
+function tx(k) { return T[lang][k] || k; }
+
+function toggleLang() {
+  lang = lang === 'en' ? 'hi' : 'en';
+  applyLang();
+}
+
+function applyLang() {
+  const map = {
+    logoSlogan: ['textContent','logoSlogan'],
+    hdrTitle:   ['textContent','hdrTitle'],
+    hdrSub:     ['textContent','hdrSub'],
+    lblPhone:   ['textContent','lblPhone'],
+    lblPass:    ['textContent','lblPass'],
+    btnLabel:   ['innerHTML',  'btnLabel'],
+    langBtnTxt: ['textContent','langBtn'],
+    footerTxt:  ['textContent','footer'],
+    gotoTxt:    ['textContent','gotoTxt'],
+    sTitleTxt:  ['textContent','sTitle'],
+  };
+  for (const [elId, [prop, key]] of Object.entries(map)) {
+    const el = document.getElementById(elId);
+    if (el) el[prop] = tx(key);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  EYE TOGGLE
+// ══════════════════════════════════════════════
+let eyeOpen = false;
+const EYE_CLOSED = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+const EYE_OPEN  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+function toggleEye() {
+  eyeOpen = !eyeOpen;
+  document.getElementById('passInput').type = eyeOpen ? 'text' : 'password';
+  document.getElementById('eyeBtn').innerHTML = eyeOpen ? EYE_CLOSED : EYE_OPEN;
+}
+
+// ══════════════════════════════════════════════
+//  ERROR HELPERS
+// ══════════════════════════════════════════════
+function showErr(msg) {
+  const box = document.getElementById('errBox');
+  document.getElementById('errTxt').textContent = msg;
+  box.classList.add('show');
+  document.getElementById('phoneInput').classList.add('err');
+  document.getElementById('passInput').classList.add('err');
+}
+function clearErr() {
+  document.getElementById('errBox').classList.remove('show');
+  document.getElementById('phoneInput').classList.remove('err');
+  document.getElementById('passInput').classList.remove('err');
+}
+
+// ══════════════════════════════════════════════
+//  MAIN LOGIN — REAL SUPABASE AUTH
+// ══════════════════════════════════════════════
+let currentProfile = null;
+
+async function doLogin() {
+  const phone = document.getElementById('phoneInput').value.trim();
+  const pass  = document.getElementById('passInput').value;
+  clearErr();
+
+  // Validation
+  if (!phone || phone.length !== 10) { showErr(tx('errPhone')); return; }
+  if (!pass)                          { showErr(tx('errPass'));  return; }
+
+
+
+  // Loading state
+  const btn = document.getElementById('loginBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    // Step 1 — Supabase Auth (email = phone@hracademy.app trick)
+    const email = `${phone}@hracademy.app`;
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+    if (error) {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+
+      // Error type ke hisaab se message
+      if (error.message.includes('Invalid login credentials')) {
+        // Check karo — number registered hai ya nahi
+        const { data: profileCheck } = await sb
+          .from('profiles')
+          .select('id')
+          .eq('phone', phone)
+          .single();
+
+        if (!profileCheck) {
+          showErr(tx('errNotReg'));
+        } else {
+          showErr(tx('errWrong'));
+        }
+      } else {
+        showErr(tx('errServer') + '\n' + error.message);
+      }
+      return;
+    }
+
+    // Step 2 — Profile fetch (role + name ke liye)
+    const { data: profile, error: pErr } = await sb
+      .from('profiles')
+      .select('role_type, name, is_active')
+      .eq('id', data.user.id)
+      .single();
+
+    btn.classList.remove('loading');
+    btn.disabled = false;
+
+    if (pErr || !profile) {
+      showErr(tx('errServer'));
+      return;
+    }
+
+    if (!profile.is_active) {
+      showErr(lang === 'hi'
+        ? 'आपका अकाउंट निष्क्रिय है। HR Academy से संपर्क करें।'
+        : 'Your account is inactive. Please contact HR Academy.');
+      await sb.auth.signOut();
+      return;
+    }
+
+    // Step 3 — Success!
+    currentProfile = profile;
+    showSuccess(profile);
+
+  } catch (e) {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    showErr(tx('errServer'));
+    console.error(e);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  SUCCESS SCREEN
+// ══════════════════════════════════════════════
+const ROLE_META = {
+  owner:          { emoji:'👑',  color:'#c27803', bg:'#fdf6b2', labelKey:'roleOwner'  },
+  branch_manager: { emoji:'🏢', color:'#1a56db', bg:'#e8f0fe', labelKey:'roleBM'     },
+  teacher:        { emoji:'👩‍🏫', color:'#0e9f6e', bg:'#def7ec', labelKey:'roleTeacher'},
+  student:        { emoji:'👨‍🎓', color:'#6d28d9', bg:'#ede9fe', labelKey:'roleStudent'},
+};
+
+function showSuccess(profile) {
+  // Form hide, info box hide
+  document.getElementById('loginCard').style.display  = 'none';
+  
+
+  const meta = ROLE_META[profile.role_type] || ROLE_META.student;
+  document.getElementById('sTitleTxt').textContent = tx('sTitle');
+  document.getElementById('sSubTxt').textContent   = `${tx('sSub')} ${profile.name}`;
+
+  const badge = document.getElementById('sBadge');
+  badge.textContent      = `${meta.emoji}  ${tx(meta.labelKey)}`;
+  badge.style.background = meta.bg;
+  badge.style.color      = meta.color;
+
+  const gotoBtn = document.getElementById('gotoBtn');
+  gotoBtn.style.background = meta.color;
+  document.getElementById('gotoTxt').textContent = tx('gotoTxt');
+
+  const sc = document.getElementById('successCard');
+  sc.style.display   = 'block';
+  sc.style.animation = 'fadeUp 0.3s ease both';
+
+  // Auto redirect after 1.5s
+  setTimeout(() => goDashboard(), 1500);
+}
+
+// ══════════════════════════════════════════════
+//  REDIRECT TO DASHBOARD
+// ══════════════════════════════════════════════
+function redirectTo(role) {
+  const pages = {
+    student:        'student.html',
+    teacher:        'teacher.html',
+    owner:          'owner.html',
+    branch_manager: 'branch-manager.html',
+  };
+  window.location.href = pages[role] || 'index.html';
+}
+
+function goDashboard() {
+  if (currentProfile) redirectTo(currentProfile.role_type);
+}
+</script>
+</body>
+</html>
